@@ -1,0 +1,16 @@
+clear
+clc
+a0      = 1;
+a       = [2 3 2 2];
+s       = [2 2 1 2];
+mu      = [0 0 5 10];
+nObs    = 1000;
+% Simulation
+X   = simulate(nObs, a0, a, s, mu);
+csvwrite(strrep(strcat('simulaton.',...
+    num2str(a0),...
+    '.',num2str(a),...
+    '.',num2str(s),...
+    '.',num2str(mu),...
+    '.',num2str(nObs),'.csv'),' ',''),X);
+anaGUI
