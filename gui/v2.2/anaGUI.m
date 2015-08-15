@@ -91,9 +91,10 @@ function gobtn_Callback(~, ~, handles)
 % eventdata  reserved - to be defined in a future version of MATLAB
 % handles    structure with handles and user data (see GUIDATA)
 if(isfield(handles,'data'))
-    clc%strcat(num2str(round(1000*0.25+ 0.5*x)/10),'%')
+    clc
     h = waitbar(0,'Please wait...');
-    [ mu, s, a, a0, chi, ~, p, ana ] = analyze( handles.data, 'Kendall', 0.99 , false, @(x) waitbar(0.25+ 0.5*x));
+
+    [ mu, s, a, a0, ~, p ] = analyze(handles.data, 'Kendall' , @(x) waitbar(x/4));
     handles.corrmat.Data = num2cell(p);
     handles.results.Data(1) = num2cell(a0);
     handles.results.Data(2,1:length(a)) = num2cell(a);
@@ -102,14 +103,28 @@ if(isfield(handles,'data'))
     handles.results.Data(5,1:length(a)) = num2cell(mean(handles.data));
     handles.results.Data(6,1:length(a)) = num2cell(mean(handles.data.^2));
     handles.results.Data(7,1:length(a)) = num2cell(var(handles.data));
-    handles.errorrate.String = strcat(num2str(ana.errR),'%');
-    handles.chiscore.String = chi;
-    handles.df.String = ana.dg;
-    waitbar(0.9);
-    handles.chitest.String = native2unicode(ana.chires*'Pass'+(1-ana.chires)*'Fail');
+    waitbar(2/4);
+
+    F   = Fmulpareto2(a0, a, s, mu);
+    try
+        [ chi, chiRes, nObs, O, E, bins ] =...
+            chiTest(handles.data, F, 10, false, false, @(x) waitbar((2+x)/4));
+        waitbar(3/4);
+        handles.errorrate.String = sprintf('%2.2f%%',chi2cdf(chi,nObs-1)*100);
+        handles.chiscore.String = chi;
+        handles.df.String = nObs - 1;
+        waitbar(3.5/4);
+        handles.chitest.String = native2unicode(chiRes*'Pass'+(1-chiRes)*'Fail');
+    catch
+        [~, maxSize] = computer;
+        errordlg(sprintf('Not enough memory to create containers for chi-test.\nSize of (Observations)^(Variables)=%d^%d=%s is too big. \nMax Size is %s',...
+        size(handles.data,1),size(handles.data,2),size(handles.data,1)^size(handles.data,2),maxSize),...
+        'Can''t compute Chi-Values');
+    end
     handles.results.ColumnName = genColName('X',length(a));
     handles.corrmat.ColumnName = genColName('X',length(a));
     handles.corrmat.RowName = genColName('X',length(a));
+    waitbar(4/4);
     close(h);
 else
     msgbox('No data, please load a proper file!','Error');

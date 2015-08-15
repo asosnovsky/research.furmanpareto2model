@@ -34,6 +34,27 @@ disp('Simulated Values:');disp(sim);
 
 % Analysis
 %  --------
-%clc
+waitCB = @(x) false;
+
 disp('---------------[Analysis]----------------');
-[ location, scale, shapes, shape0, chi, shapes0, p, ana, O, E, bins ] = analyze( X, 'Kendall', chiLevel, struct('a',a,'a0',a0,'s',s,'mu',mu) );
+[ location, scale, shapes, shape0, shapes0, p ] = ...
+    analyze( X, 'Kendall', waitCB);
+
+%% Chi Results
+    F   = Fmulpareto2(shape0, shapes, scale, location);
+    [ chi, chiRes, nObs, O, E, bins ] = chiTest(X, F, 10, false, false, waitCB);
+% Messages
+    fprintf('Averaged Values: \n');
+    fprintf('-----------------------------------------\n');
+    fprintf('> Name  | Estimated | Real | Diff |\n');
+    fprintf('> --------------------------------------- \n');
+    fprintf('> alpha0  %2.2f       %2.2f    %2.2f    \n', shape0,a0, abs(shape0-a0));
+    fprintf('> alpha%d  %2.2f       %2.2f    %2.2f   \n', [1:length(a); shapes; a; abs(shapes-a)]);
+    fprintf('> mu%d     %2.2f       %2.2f    %2.2f   \n', [1:length(mu); location; mu; abs(location-mu)]);
+    fprintf('> s%d      %2.2f       %2.2f    %2.2f   \n', [1:length(s); scale; s; abs(scale-s)]);
+    fprintf('> --------------------------------------- \n');
+    fprintf('> Error Rate: %d%%\n',chi2cdf(chi,nObs-1)*100);
+    fprintf('> Chi-Score: %2.4f  \n> Required Score: %2.4f\n> Degrees of freedom: %d\n',...
+        chi, chi2inv(0.95,nObs-1), nObs-1);
+    fprintf(' [ Alpha resultion method used: `MEAN` ] \n');
+ 

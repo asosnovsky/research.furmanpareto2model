@@ -1,12 +1,13 @@
-function [ Chi, Res, O, E, bins ] = chiTest( X, F, nBin, SUPWARN, SUPTEST, waitCB)
+function [ Chi, Res, nObs, O, E, bins ] = chiTest( X, F, nBin, SUPWARN, SUPTEST, waitCB)
 %   chiTest::Multivariate Chi-Test
 %   @(param)   X       Matrix;   multivariate dataset     (required)
 %   @(param)   F       Function; multivariate ddf/cdf     (required)
 %   @(param)   nBin    Number;   Number of bins           (optional, defaults t0 10)
 %   @(param)   SUPWARN Bolean;   suppress any messages    (optional)
 %   @(param)   SUPTEST Bolean;   suppress tests           (optional)
-%   @(return)  Res     Bolean;   results of test
 %   @(return)  Chi     Number;   chi-square-test score    
+%   @(return)  Res     Bolean;   results of test
+%   @(return)  nObs    Number;   number of observations
 %   @(return)  O       Matrix;   Observed values
 %   @(return)  E       Matrix;   Estimated values
 %   @(return)  bins    Structure;bins values
@@ -27,7 +28,7 @@ function[] = WARN(m,mx)
         m, mx);
     end
 end        
-% Get data
+%1 Get data
 nObs    = size(X,1);
 nVar    = size(X,2);
 if(~exist('nBin'))
@@ -37,17 +38,23 @@ end
 maxX    = max(X);
 minX    = min(X);minX = minX - 1e-10;
 bDim    = (maxX-minX)/nBin;
-if(exist('waitCB','var')); waitCB(0.5*(1+(1/10))); end;
-% Create intervals
+if(exist('waitCB','var')); waitCB(1/8); end;
+%2 Create intervals
 bIntv   = zeros(nBin+1,nVar);
 for i=1:nVar
     bIntv(:,i) = (minX(i):bDim(i):maxX(i));
 end
-if(exist('waitCB','var')); waitCB(0.5*(1+(2/10))); end;
-% Set Containers
-O        = zeros(nBin^nVar,1);
-E        = zeros(nBin^nVar,1);
-bins     = cell(nBin^nVar,1);
+if(exist('waitCB','var')); waitCB(2/8); end;
+%3 Set Containers
+try
+    O        = zeros(nBin^nVar,1);
+    E        = zeros(nBin^nVar,1);
+    bins     = cell(nBin^nVar,1);
+catch
+    [~, maxSize] = computer;
+    error('Not enough memory to create containers. Size of %d^%d=%s is too big. Max Size is %s',...
+        nBin,nVar,nBin^nVar,maxSize);
+end
 function [combos] = combos(n,m)
 %   combos::lists all the possible combinations for the values in `n`, 
 %   `m` times.
@@ -90,10 +97,11 @@ function [combos] = combos(n,m)
     combos = combos';
 end
 
-% Get all needed combinations
+%4 Get all needed combinations
 cmb = combos(1:nBin,nVar);
-if(exist('waitCB','var')); waitCB(0.5*(1+(3/10))); end;
-% Bin-Size Test setup
+if(exist('waitCB','var')); waitCB(4/8); end;
+
+%5 Bin-Size Test setup
 if(SUPTEST == false)
     Tbin     = zeros(2,nVar);
     iComb = ((1:nVar)*0+1);
@@ -103,8 +111,11 @@ if(SUPTEST == false)
     end
     sizeTest = prod(abs(diff(Tbin)));
 end
+if(exist('waitCB','var')); waitCB(5/8); end;
+
 % Warning of size
 WARN(length(cmb)^nVar,(7^3)^3);
+
 % Difference Function
 function [ res ] = DDn( fin, n, F, minx )
     DDf = @(fin,n,F) F([fin(1:n-1) minx(n) fin(n+1:end)])-F(fin);
@@ -114,7 +125,8 @@ function [ res ] = DDn( fin, n, F, minx )
         res = DDf( fin, 1, F );
     end
 end
-% Computation loop
+
+%6 Computation loop
 for iBin = 1:length(cmb)
     iComb   = cmb(:,iBin);
     bin     = zeros(2,nVar);
@@ -123,21 +135,25 @@ for iBin = 1:length(cmb)
         bin(2, iVar) = bIntv(iComb(iVar)+1,iVar);
     end
     if(abs(sizeTest - prod(abs(diff(Tbin)))) > 0 && ~SUPTEST)
-        error('Wrong bin dimension, bin(%d)== %d ~= %d', iBin, prod(abs(diff(Tbin))), size.test);
+        error('Wrong bin dimension, bin(%d)== %d ~= %d',...
+            iBin, prod(abs(diff(Tbin))), size.test);
     end
     bins{iBin} = bin;
     O(iBin) = sum(sum(repmat(bin(1,:),nObs,1) < X & repmat(bin(2,:),nObs,1) >= X,2)==nVar)/nObs;
     minx = bin(1,:);maxx = bin(2,:);
     n = size(bin,2);
     E(iBin) = abs(DDn(maxx,n,F,minx));
-    if(exist('waitCB','var')); waitCB(0.5*(1+3/10+7*(iBin/length(cmb))/10)); end;
+    if(exist('waitCB','var')); waitCB((5 + iBin./length(cmb))/8); end;
 end
-if(exist('waitCB','var')); waitCB(0.5*(1+(5/6))); end;
-% Test that all bins were measured
+if(exist('waitCB','var')); waitCB(6/8); end;
+
+%7 Test that all bins were measured
 if(abs(sum(O)-1)>1e-10 && ~SUPTEST && ~SUPWARN)
     warning('sum(O) was not complete, |sum(O) - 1| = %d',abs(sum(O)-1));
 end
+if(exist('waitCB','var')); waitCB(7/8); end;
 
+%8 Compute Results
 Chi = sum(sum(((O - E).^2)./E));
 Res = Chi < chi2inv(0.99,nObs-1);
 if(~SUPTEST)
@@ -145,5 +161,7 @@ if(~SUPTEST)
     fprintf('-> Number of Bins: %d\n-> Chi Score: %2.3f\n-> Degrees of Freedom: %d\n\n',...
         nBin, Chi, nObs-1);
 end
+
+if(exist('waitCB','var')); waitCB(8/8); end;
 end
 

@@ -23,6 +23,9 @@ function [ ret ] = YNDialog( name, text, cb )
                'Callback',@NO);
        
     uiwait(d);
+    function CANCEL()
+        error('Analysis Stopped') ;
+    end
     function NO(~,~)
       ret = cb(false);
       delete(gcf)

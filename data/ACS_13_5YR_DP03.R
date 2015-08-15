@@ -1,8 +1,9 @@
 # Working Dir
-setwd("C:/Box/Research/data");# My home dir
+homeDir = "~/Projects/York/Research/data";#linux
+setwd(homeDir);
 
 # Read data
-data <- read.csv("C:/Box/Research/data/original/ACS_13_5YR_DP03/ACS_13_5YR_DP03_with_ann.csv");
+data <- read.csv("./original/ACS_13_5YR_DP03/ACS_13_5YR_DP03_with_ann.csv");
 
 # Extract partials
 data.estimates <- data[grepl("Estimate",unlist(data[1,]))];
