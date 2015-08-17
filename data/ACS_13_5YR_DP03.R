@@ -5,6 +5,9 @@ rm(list=ls());
 homeDir = "~/Projects/York/Research/data";#linux
 setwd(homeDir);
 
+# Create Tidy-folder if not already there
+dir.create(file.path(homeDir,"tidy/"), showWarnings = F);
+
 # Reset Main Folders
 tidyFolder = file.path(homeDir, 'tidy/ACS_13_5YR_DP03');
 origFolder = file.path(homeDir, 'original/ACS_13_5YR_DP03');

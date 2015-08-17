@@ -8,6 +8,9 @@ setwd(homeDir);
 origPath <- file.path(homeDir,"original/CASdatasets/");
 tidyPath <- file.path(homeDir,"tidy/CASdatasets/");
 
+# Create Tidy-folder if not already there
+dir.create(file.path(homeDir,"tidy/"), showWarnings = F);
+
 # Clean Old Data
 unlink(tidyPath, r = T, f = T);
 dir.create(tidyPath, showWarnings = T);
