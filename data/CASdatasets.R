@@ -1,23 +1,30 @@
+# Main data source: ACS_13_5YR_DP03.zip
+rm(list=ls());
+
 # Working Dir
-setwd("C:/Box/Research/data");# My home dir
+homeDir = "~/Projects/York/Research/data";#linux
+setwd(homeDir);
 
-path <- "original/CASdatasets/";
+origPath <- file.path(homeDir,"original/CASdatasets/");
+tidyPath <- file.path(homeDir,"tidy/CASdatasets/");
 
-load(paste0(path, "auscathist.rda"));
-load(paste0(path, "nzcathist.rda"));
- 
-data <- split(auscathist,auscathist$Type)
-View(data[[1]])
+# Clean Old Data
+unlink(tidyPath, r = T, f = T);
+dir.create(tidyPath, showWarnings = T);
 
-dat = data[[1]][c("FirstDay","Location", "OriginalCost", "NormCost2011","NormCost2014")];
-colnames(dat)[-(1:2)] = paste(data[[i]]$Type[1], colnames(dat)[-(1:2)]);
-dt = dat;
+## Analyze and Save Function
+source("./CASdatasets/anSave.R")
+dir.create(paste0(tidyPath,'/full'), showWarnings = T);
 
-for(i in 2:length(data)){
-  dat = data[[i]][c("FirstDay","Location", "OriginalCost", "NormCost2011","NormCost2014")];
-  colnames(dat)[-(1:2)] = paste(data[[i]]$Type[1], colnames(dat)[-(1:2)]);
-  dt = merge(dat, dt, all.x=TRUE, all.y=TRUE);
-}
+analyzeANDSave(auscathist[c("Type","Year","OriginalCost")],15,'aus');
+analyzeANDSave(nzcathist[c("Type","Year","OriginalCost")],15,'nz');
 
+# Partial Data
+source("./CASdatasets/getPartial.R")
+dir.create(paste0(tidyPath,'/partial'), showWarnings = T);
 
-View(createMini(data[[1]]))
+aus <- getPartial('aus');
+nz <- getPartial('nz');
+
+barplot(t(nz), main="New Zealand", legend.text = colnames(nz))
+barplot(t(aus),main="Australia", legend.text = colnames(aus))

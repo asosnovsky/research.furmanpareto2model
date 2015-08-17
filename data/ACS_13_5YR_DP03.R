@@ -1,52 +1,53 @@
+# Main data source: ACS_13_5YR_DP03.zip
+rm(list=ls());
+
 # Working Dir
 homeDir = "~/Projects/York/Research/data";#linux
 setwd(homeDir);
 
-# Read data
-data <- read.csv("./original/ACS_13_5YR_DP03/ACS_13_5YR_DP03_with_ann.csv");
+# Reset Main Folders
+tidyFolder = file.path(homeDir, 'tidy/ACS_13_5YR_DP03');
+origFolder = file.path(homeDir, 'original/ACS_13_5YR_DP03');
 
-# Extract partials
-data.estimates <- data[grepl("Estimate",unlist(data[1,]))];
-data.income <- data.estimates[grepl("INCOME AND BENEFITS",unlist(data.estimates[1,]))];
+## Clean
+unlink(tidyFolder, r = T, f = T);
+unlink(origFolder, r = T, f = T);
 
-# Family
-data.income.family <- data.income[grep("Families",unlist(data.income[1,]))];
-## Get desired data
-family <- list(
-  by.group=data.frame(data.income.family[grep("to|or|Less",unlist(data.income.family[1,]))][-1,]
-    ,row.names=data$GEO.display.label[-1]
-  ),
-  totals=data.frame(data.income.family[!grepl("to|or|Less",unlist(data.income.family[1,]))][-1,]
-    ,row.names=data$GEO.display.label[-1]
-  )
-)
-## Set collumns
-colnames(family$by.group) <- sub("^.*?Families - ","",unlist(data.income.family[1,grep("to|or|Less",unlist(data.income.family[1,]))]),perl=T);
-colnames(family$totals) <- sub("^.*?Families - ","",unlist(data.income.family[1,!grepl("to|or|Less",unlist(data.income.family[1,]))]),perl=T);
+## Make
+dir.create(tidyFolder, showWarnings = T);
+unzip(file.path(homeDir,'ACS_13_5YR_DP03/ACS_13_5YR_DP03.zip'),exdir=origFolder);
 
-## Write tables
-write.table(family$by.group,file="./tidy/family.bygroup.noanno.csv", row.names=FALSE, col.names=FALSE, sep=",");
-write.table(family$totals,file="./tidy/family.totals.noanno.csv", row.names=FALSE, col.names=FALSE, sep=",");
-write.csv(family$by.group,file="./tidy/family.bygroup.anno.csv");
-write.csv(family$totals,file="./tidy/family.totals.anno.csv");
+### Make Family/House Data
+dir.create(file.path(tidyFolder,'family'), showWarnings = FALSE);
+dir.create(file.path(tidyFolder,'house'), showWarnings = FALSE);
 
-# Household
-data.income.house <- data.income[grep("Total [Hh]ousehold",unlist(data.income[1,]))];
-## Get wanted data
-house <- list(
-  by.group=data.frame(data.income.house[grep("to|or|Less",unlist(data.income.house[1,]))][-1,]
-                      ,row.names=data$GEO.display.label[-1]
-  ),
-  totals=data.frame(data.income.house[!grepl("to|or|Less",unlist(data.income.house[1,]))][-1,]
-                    ,row.names=data$GEO.display.label[-1]
-  )
-)
-## Collumns
-colnames(house$by.group) <- sub("^.*?Families - ","",unlist(data.income.house[1,grep("to|or|Less",unlist(data.income.family[1,]))]),perl=T);
-colnames(house$totals) <- sub("^.*?Families - ","",unlist(data.income.house[1,!grepl("to|or|Less",unlist(data.income.family[1,]))]),perl=T);
+source(file.path(homeDir,'ACS_13_5YR_DP03','home.family.R'));
+famHouse(origFolder,tidyFolder);
 
-## Write tables
-write.table(family$by.group,file="./tidy/house.bygroup.noanno.csv", row.names=FALSE, col.names=FALSE, sep=",");
-write.table(family$totals,file="./tidy/house.totals.noanno.csv", row.names=FALSE, col.names=FALSE, sep=",");
-write.csv(family$by.group,file="./tidy/house.bygroup.anno.csv");
-write.csv(family$totals,file="./tidy/house.totals.anno.csv");
+### Make family county by income data
+dir.create(file.path(tidyFolder,'county.by.income'), showWarnings = FALSE);
+
+source(file.path(homeDir,'ACS_13_5YR_DP03','county.by.income.R'));
+data.all <- countIncome(file.path(homeDir,'original'), tidyFolder);
+
+### Make family county by totals data
+dir.create(file.path(tidyFolder,'county.totals'), showWarnings = FALSE);
+
+source(file.path(homeDir,'ACS_13_5YR_DP03','county.totals.R'));
+countTot(file.path(homeDir,'original'), tidyFolder);
+
+### Make Aggregate Data
+dir.create(file.path(tidyFolder,'aggregate'), showWarnings = FALSE);
+source(file.path(homeDir,'ACS_13_5YR_DP03','aggregate.R'));
+data.aggs <- aggData(file.path(homeDir,'original'), tidyFolder,4);
+
+
+for(state in names(data.aggs)) {
+  barplot((data.aggs[[state]]), main=state, legend.text = colnames(data.aggs[[state]]));
+}
+
+for(state in names(data.aggs)) {
+  barplot(t(data.all[[state]]), main=state 
+          #,legend.text = colnames(data.all[[state]])
+          );
+}
