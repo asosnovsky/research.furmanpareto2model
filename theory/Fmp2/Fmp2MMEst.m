@@ -1,4 +1,4 @@
-function [ location, scale, shape, shape0, shapes0, p ] = Fmp2MMEst( X, corrtype, waitCB )
+function [ location, scale, shape, shape0, shape0k, shapes0, p ] = Fmp2MMEst( X, corrtype, waitCB )
 % Fmp2MMEst::runs a fit moment-based model for the Furman Multiavariate Second Kind
 % Pareto, also performs a multivariate chi-test as needed
 % @(param)  X           Matrix;             Collumns are a data series (require)
@@ -39,13 +39,21 @@ function [ location, scale, shape, shape0, shapes0, p ] = Fmp2MMEst( X, corrtype
     scale   = m1.*(shape0k-1);
         if(exist('waitCB','var')); waitCB(5/6); end;
     %6 Compute Shape0
-    p      = corr(X_,'Type',corrtype);
-    shapes0 = zeros(1, nVar-1);
-    for iVar=1:(nVar-1)
-        shapes0(iVar) = p(iVar,iVar+1).*(shape0k(iVar)+shape0k(iVar+1)-2)./(m1(iVar).*m2(iVar+1)+p(iVar,iVar+1));
+    if(nVar > 1) 
+        p      = corr(X_,'Type',corrtype);
+        shapes0 = zeros(1, nVar-1);
+        for iVar=1:(nVar-1)
+            shapes0(iVar) = p(iVar,iVar+1).*(shape0k(iVar)+shape0k(iVar+1)-2)./(m1(iVar).*m2(iVar+1)+p(iVar,iVar+1));
+        end
+        shape0 = mean(shapes0);
+        shape = shape0k - shape0;
+    else
+        p = 1;
+        shape0  = shape0k;
+        shape   = shape0k;
+        shapes0 = shape0k;
     end
-    shape0 = mean(shapes0);
-    shape = shape0k - shape0;
+    
         if(exist('waitCB','var')); waitCB(6/6); end;
 end
 

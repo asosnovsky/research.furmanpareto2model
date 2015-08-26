@@ -1,11 +1,11 @@
 function [ X ] = Fmp2sim( num, a0, a, s, mu )
-%	simulate::simulates values using the Furman 
+%	Fmp2sim::simulates values using the Furman 
 %   pareto of second kind
-%   @(param)    mu     Number(0,infty);  loation parameters          (defaults to 0)
-%   @(param)    s      Number(1, infty); scale parameters            (defaults to 1)
-%   @(param)    a      Number(1, infty); shape parameters            (defaults to 2)
-%   @(param)    a0     Number(1, infty); shared-shape parameter      (defaults to 2)
 %   @(param)    num    Number(1, infty); number of simulates values  (required)
+%   @(param)    a0     Number(1, infty); shared-shape parameter      (defaults to 2)
+%   @(param)    a      Number(1, infty); shape parameters            (defaults to 2)
+%   @(param)    s      Number(1, infty); scale parameters            (defaults to 1)
+%   @(param)    mu     Number(0,infty);  loation parameters          (defaults to 0)
 %   @(return)   X      Matrix;           simulated values
 %
 

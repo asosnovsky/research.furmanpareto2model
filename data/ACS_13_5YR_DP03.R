@@ -39,6 +39,12 @@ dir.create(file.path(tidyFolder,'county.totals'), showWarnings = FALSE);
 source(file.path(homeDir,'ACS_13_5YR_DP03','county.totals.R'));
 countTot(file.path(homeDir,'original'), tidyFolder);
 
+### Flipped data
+dir.create(file.path(tidyFolder,'county.by.income.flipped'), showWarnings = FALSE);
+
+source(file.path(homeDir,'ACS_13_5YR_DP03','flipped.R'));
+flipData();
+
 ### Make Aggregate Data
 dir.create(file.path(tidyFolder,'aggregate'), showWarnings = FALSE);
 source(file.path(homeDir,'ACS_13_5YR_DP03','aggregate.R'));

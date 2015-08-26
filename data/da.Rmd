@@ -1,0 +1,21 @@
+---
+title: "Untitled"
+author: "Ariel Sosnovsky, Ken"
+date: "August 17, 2015"
+output: html_document
+---
+$$
+  X_j\sim\text{Pareto2}(\mu_j,\sigma_j,\alpha_j)
+$$
+$$
+  Y_j = min(\frac{X_j-\mu_j}{\sigma_j},X_0)
+$$
+$$
+  \mu_0 = 0
+$$
+$$
+  \sigma_0=1
+$$
+$$
+  Pr(Y<y) = ...
+$$
