@@ -1,0 +1,24 @@
+clear
+clc
+
+addpath('./Fmp2');
+addpath('./simulation');
+addpath('./chiTest');
+
+
+num = 100;
+a0 	= 2;
+a 	= [2 2];
+s 	= [1 1];
+mu	= [0 0]; 
+
+X = Fmp2sim(num, a0, a, s, mu);
+[ est.mu, est.s, est.a, est.a0, ~, est.a0s, p ] = Fmp2MMEst( X );
+disp(est);
+
+ps = [];
+for(iSim = 1:100)
+    [chi p] = chiTest(X, Fmp2(a0,a,s,mu));
+    ps = [p ps];
+    disp(iSim);
+end

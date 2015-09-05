@@ -39,7 +39,6 @@ function [ X ] = Fmp2sim( num, a0, a, s, mu )
     % Simulate random values
     p0  = 1- rand(num, 1,1);
     p   = 1- rand(num, n,1);
-    %p   = repmat(p0,1,n);
     
     % simulate univariate paretos
     Y0  = (p0.^(1./(-a0_))-1);
@@ -47,5 +46,9 @@ function [ X ] = Fmp2sim( num, a0, a, s, mu )
     
     % Apply the multivariate model
     X = min(repmat(Y0,1,n).*s_+mu_,Y);
+
+    if(any(X<0) | any(X<mu_))
+        error('MU::MAX:ERROR');
+    end
 end
 

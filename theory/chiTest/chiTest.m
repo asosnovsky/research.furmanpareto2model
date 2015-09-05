@@ -15,16 +15,6 @@ if(~exist('SUPMSG','var'))
     SUPMSG = false;
 end
 
-function[] = WARN(m,mx,msg)
-    if(~exist('msg','var'))
-        msg = 'Running a process of size %c, may take some time. \nSuggested process size should be less than %c% for good performance,\nReducing the `bin` size or `number of variables` may increase speed.';
-    end
-    if(m >= mx && ~SUPMSG)
-        warning(msg,...
-        m, mx);
-    end
-end
-
 %1 Get data
 nObs    = size(X,1);
 nVar    = size(X,2);
@@ -32,7 +22,6 @@ if(~exist('nBin') | ~nBin)
     nBin    = floor(nObs/2);
 end
 nBin    = max([nBin 2]);
-    fprintf('[chiTest Alert] Using %d bins\n', nBin);
 maxX    = max(X);
 minX    = min(X) - 1e-10;
 bDim    = (maxX-minX)/nBin;
@@ -49,9 +38,6 @@ end
 cmb = combos(1:nBin,nVar);
     if(exist('waitCB','var')); waitCB(3/6); end;
 
-% Warning of size
-WARN(nVar, 20, 'Current Var: %s, Usage of RAM might max-out when running the function on more than %s');
-
 %4 Define helper-variables
 if(nVar > 1)
     cmbs = (dec2bin(0:2^nVar-1)=='1')'+1;
@@ -62,6 +48,7 @@ else
     sgn     = [-1 1];
 end
 Chi = 0; 
+mrg = @(E) abs(sgn*F(E));
     if(exist('waitCB','var')); waitCB(4/6); end;
 
 %5 Computation loop
@@ -74,8 +61,12 @@ for iBin = 1:length(cmb)
     end
     O = sum(sum(repmat(bin(1,:),nObs,1) < X & repmat(bin(2,:),nObs,1) >= X,2)==nVar)/nObs;
     E = (cmbs==2).*repmat(bin(2,:)',1,size(cmbs,2)) +(cmbs==1).*repmat(bin(1,:)',1,size(cmbs,2));
-    E = abs(sgn*F(E));
-        % if(exist('waitCB','var')); waitCB((4 + iBin./length(cmb))/6); end;
+    if(size(sgn,2) == size(F(E),2))
+        sgn = sgn';
+        mrg = @(E) abs(F(E)*sgn);
+    end
+    E = mrg(E);
+        if(exist('waitCB','var')); waitCB((4 + iBin./length(cmb))/6); end;
     Chi = Chi + ((O - E).^2)./E;
     if(exist('waitCB','var')); waitCB(4/6 + (iBin/length(cmb))/6); end;
 end
