@@ -67,7 +67,7 @@ for(iSim = 1:simNum)
     % MSGs(2,3,iSim,MF,MI,MA)
     
     % Arnold
-    % [ est.a, est.mu ] = Amp2MLEst(X);est.s = [1 1];
+    %[ est.a, est.mu ] = Amp2MLEst(X);est.s = [1 1];
     pA = corr(X);
     [ Chi, pVal, ~ ] = chiTest( X, Amp2( 1/pA(1,2), [1 1], [0,0] ), nBin );
         MA.pVal = [MA.pVal pVal];
